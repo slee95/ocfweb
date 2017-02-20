@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ocflib.account.validators import validate_password
 from ocflib.vhost.mail import crypt_password
@@ -48,7 +49,24 @@ def vhost_mail(request):
         },
     )
     
+@login_required
+@group_account_required
+@require_POST
+@csrf_exempt
+def api_vhost_mail_update(request):
+    try:
+        _vhost_mail_update(request)
+    except ResponseException:
+        return JsonResponse({'errors': [m.message for m in messages.get_messages(request)]})
+
+@login_required
+@group_account_required
+@require_POST
 def vhost_mail_update(request):
+    return _vhost_mail_update(request)
+
+@csrf_exempt
+def _vhost_mail_update(request):
     user = logged_in_user(request)
 
     # All requests are required to have these
@@ -112,16 +130,6 @@ def vhost_mail_update(request):
 
     messages.add_message(request, messages.SUCCESS, 'Update successful!')
     return _redirect_back()
-
-@login_required
-@group_account_required
-@require_POST
-def api_vhost_mail_update(request):
-    try:
-        vhost_mail_update(request)
-    except ResponseException:
-        return JsonResponse({'message': messages.SUCCESS})
-    return JsonResponse({'message': messges.ERROR})
 
 @login_required
 @group_account_required

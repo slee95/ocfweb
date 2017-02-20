@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^vhost/mail/$', vhost_mail, name='vhost_mail'),
     url(r'^vhost/mail/update/$', vhost_mail_update, name='vhost_mail_update'),
     url(r'^api/vhost/mail/$', api_vhost_mail, name='api_vhost_mail'),
-    url(r'^api/vhost/mail/update$', api_vhost_mail_update, name='api_vhost_mail_update'),
+    url(r'^api/vhost/mail/update/$', api_vhost_mail_update, name='api_vhost_mail_update'),
 
 
 ]
