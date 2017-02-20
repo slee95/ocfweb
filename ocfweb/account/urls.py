@@ -10,6 +10,8 @@ from ocfweb.account.vhost import request_vhost
 from ocfweb.account.vhost import request_vhost_success
 from ocfweb.account.vhost_mail import vhost_mail
 from ocfweb.account.vhost_mail import vhost_mail_update
+from ocfweb.account.vhost_mail import api_vhost_mail
+from ocfweb.account.vhost_mail import api_vhost_mail_update
 
 
 urlpatterns = [
@@ -29,4 +31,8 @@ urlpatterns = [
     # mail vhost management
     url(r'^vhost/mail/$', vhost_mail, name='vhost_mail'),
     url(r'^vhost/mail/update/$', vhost_mail_update, name='vhost_mail_update'),
+    url(r'^api/vhost/mail/$', api_vhost_mail, name='api_vhost_mail'),
+    url(r'^api/vhost/mail/update$', api_vhost_mail_update, name='api_vhost_mail_update'),
+
+
 ]

@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from ocflib.account.validators import validate_password
 from ocflib.vhost.mail import crypt_password
 from ocflib.vhost.mail import get_connection
@@ -46,11 +47,7 @@ def vhost_mail(request):
             'vhosts': vhosts,
         },
     )
-
-
-@login_required
-@group_account_required
-@require_POST
+    
 def vhost_mail_update(request):
     user = logged_in_user(request)
 
@@ -116,15 +113,40 @@ def vhost_mail_update(request):
     messages.add_message(request, messages.SUCCESS, 'Update successful!')
     return _redirect_back()
 
+@login_required
+@group_account_required
+@require_POST
+def api_vhost_mail_update(request):
+    try:
+        vhost_mail_update(request)
+    except ResponseException:
+        return JsonResponse({'message': messages.SUCCESS})
+    return JsonResponse({'message': messges.ERROR})
+
+@login_required
+@group_account_required
+def api_vhost_mail(request):
+    user = logged_in_user(request)
+    vhosts = []
+
+    with _txn() as c:
+        for vhost in sorted(vhosts_for_user(user)):
+            addresses = {}
+            for forwarding_addr in sorted(vhost.get_forwarding_addresses(c)):
+                addresses[forwarding_addr.address] = list(forwarding_addr.forward_to)
+            vhosts.append({
+                'domain': vhost.domain,
+                'addresses': addresses,
+            })
+
+    return JsonResponse(vhosts, safe=False)
 
 def _error(request, msg):
     messages.add_message(request, messages.ERROR, msg)
     raise ResponseException(_redirect_back())
 
-
 def _redirect_back():
     return redirect(reverse('vhost_mail'))
-
 
 def _get_action(request):
     action = request.POST.get('action')
@@ -132,7 +154,6 @@ def _get_action(request):
         _error(request, 'Invalid action: "{}"'.format(action))
     else:
         return action
-
 
 def _parse_addr(addr, allow_wildcard=False):
     """Safely parse an email, returning first component and domain."""
